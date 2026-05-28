@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heurísticas de Nielsen — Guía y Práctica</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f7f7fa; --card: #ffffff; --border: #e4e4ec;
+    --accent: #4f46e5; --accent2: #0ea5e9; --accent3: #db2777;
+    --text: #111118; --muted: #6b7280; --good: #16a34a; --bad: #dc2626; --warn: #d97706;
+    --radius: 12px; --font: Verdana, Arial, sans-serif; --mono: 'Courier New', Courier, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 16px; min-height: 100vh; overflow-x: hidden; }
+
+  /* H3: skip link para accesibilidad */
+  .skip-link { position: absolute; top: -40px; left: 1rem; background: var(--accent); color: #fff; padding: 0.5rem 1rem; border-radius: 0 0 8px 8px; font-size: 0.9rem; font-weight: 700; transition: top 0.2s; z-index: 9999; text-decoration: none; }
+  .skip-link:focus { top: 0; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* H1: nav siempre visible + indica seccion activa */
+  #nav-tabs { display: flex; align-items: center; padding: 0 1.5rem; background: #fff; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 200; overflow-x: auto; gap: 0; }
+  .nav-tab { padding: 1rem 1.25rem; font-family: var(--font); font-size: 0.92rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: color 0.15s, border-color 0.15s; user-select: none; }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+
+  /* H1: breadcrumb — siempre sabes donde estas */
+  #breadcrumb { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.4rem 1.5rem; font-size: 0.82rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+  #breadcrumb .bc-current { color: var(--accent); font-weight: 700; }
+
+  /* HERO */
+  #hero { background: linear-gradient(135deg, #f0effe 0%, #e8f4ff 100%); padding: 4rem 2rem 3.5rem; text-align: center; border-bottom: 1px solid var(--border); }
+  .hero-eyebrow { display: inline-block; background: rgba(79,70,229,0.09); border: 1px solid rgba(79,70,229,0.2); border-radius: 99px; padding: 0.3rem 1rem; font-size: 0.82rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.2rem; font-weight: 700; }
+  #hero h1 { font-size: clamp(2rem,5vw,3.6rem); font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
+  #hero h1 em { color: var(--accent); font-style: normal; }
+  #hero .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 560px; margin: 0 auto 2rem; line-height: 1.7; }
+  .hero-cta-row { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+  /* H7: acceso rapido para usuarios avanzados */
+  .hero-quickjump { margin-top: 1.8rem; padding-top: 1.5rem; border-top: 1px solid rgba(79,70,229,0.15); }
+  .hero-quickjump p { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.7rem; }
+  .qj-grid { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+  .qj-btn { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; font-family: var(--mono); color: var(--accent); cursor: pointer; font-weight: 700; transition: background 0.12s, border-color 0.12s, color 0.12s; }
+  .qj-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* BOTONES */
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 9px; padding: 0.75rem 1.8rem; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.15s, transform 0.12s; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 9px; padding: 0.7rem 1.6rem; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .btn-outline:hover { background: var(--accent); color: #fff; }
+
+  /* SECCIONES */
+  .section-wrap { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem; }
+  .section-label { font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent2); margin-bottom: 0.5rem; font-weight: 700; }
+  .section-title { font-size: clamp(1.5rem,3vw,2.2rem); font-weight: 800; margin-bottom: 1rem; line-height: 1.15; }
+  .section-body { font-size: 1.05rem; color: #374151; line-height: 1.8; max-width: 700px; }
+  .section-body p + p { margin-top: 1rem; }
+  .divider { height: 1px; background: var(--border); margin: 2.5rem 0; }
+
+  /* PERSONA */
+  .person-card { display: flex; gap: 1.5rem; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin: 2rem 0; }
+  .person-avatar { width: 76px; height: 76px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #0ea5e9); display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; }
+  .person-info h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.2rem; }
+  .person-info .person-title { font-size: 0.85rem; color: var(--accent); font-family: var(--mono); margin-bottom: 0.7rem; font-weight: 700; }
+  .person-info p { font-size: 1rem; color: #374151; line-height: 1.65; }
+
+  /* STATS */
+  .stats-row { display: flex; gap: 1rem; flex-wrap: wrap; margin: 2rem 0; }
+  .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.4rem; text-align: center; flex: 1; min-width: 120px; }
+  .stat-num { font-size: 2rem; font-weight: 900; color: var(--accent); line-height: 1; }
+  .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.3; }
+
+  /* TIMELINE */
+  .timeline { border-left: 2px solid var(--border); padding-left: 1.5rem; margin: 1.5rem 0; }
+  .tl-item { position: relative; padding-bottom: 1.5rem; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot { position: absolute; left: -1.9rem; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 0 0 2px var(--accent); }
+  .tl-year { font-family: var(--mono); font-size: 0.78rem; color: var(--accent); margin-bottom: 2px; font-weight: 700; }
+  .tl-text { font-size: 1rem; color: #374151; line-height: 1.55; }
+
+  /* H10: tooltip contextual */
+  [data-tip] { position: relative; cursor: help; border-bottom: 1px dashed var(--accent); }
+  [data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #111; color: #fff; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 100; max-width: 240px; white-space: normal; text-align: center; line-height: 1.4; min-width: 120px; }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* GUIA */
+  .guide-toolbar { display: flex; gap: 0.6rem; margin-bottom: 1.2rem; flex-wrap: wrap; align-items: center; }
+  .guide-toolbar-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 1rem; font-family: var(--font); font-size: 0.88rem; cursor: pointer; color: var(--muted); transition: border-color 0.15s, color 0.15s; }
+  .guide-toolbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* H6: busqueda filtro visible */
+  .guide-search { flex: 1; min-width: 200px; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.9rem; font-family: var(--font); font-size: 0.95rem; color: var(--text); outline: none; transition: border-color 0.15s; }
+  .guide-search:focus { border-color: var(--accent); }
+
+  .h-guide-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.15s; }
+  .h-guide-card:hover { box-shadow: 0 3px 12px rgba(79,70,229,0.1); }
+  .h-guide-header { padding: 1.1rem 1.4rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .h-guide-header:hover { background: var(--surface); }
+  .h-guide-num { font-family: var(--mono); font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+  .h-guide-name { font-size: 1.05rem; font-weight: 700; flex: 1; }
+  .h-guide-chevron { color: var(--muted); transition: transform 0.25s; flex-shrink: 0; }
+  .h-guide-card.open .h-guide-chevron { transform: rotate(180deg); }
+  .h-guide-body { display: none; padding: 0 1.4rem 1.4rem; border-top: 1px solid var(--border); }
+  .h-guide-card.open .h-guide-body { display: block; }
+  .h-guide-definition { font-size: 1.05rem; color: #374151; line-height: 1.75; margin: 1rem 0 1.2rem; }
+  .h-guide-definition strong { color: var(--text); }
+  .example-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:600px){.example-split{grid-template-columns:1fr;}}
+  .example-col-label { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; font-weight: 700; }
+  .label-bad { color: var(--bad); } .label-good { color: var(--good); }
+  .ui-example { border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-size: 0.9rem; }
+  .ui-example.bad { border-color: rgba(220,38,38,0.3); background: #fff8f8; }
+  .ui-example.good { border-color: rgba(22,163,74,0.3); background: #f0fdf4; }
+  .key-point { background: rgba(79,70,229,0.05); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 0.8rem 1rem; font-size: 0.95rem; color: #374151; margin-top: 1rem; line-height: 1.6; }
+  .key-point strong { color: var(--accent); }
+  .other-contexts { background: rgba(14,165,233,0.05); border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; padding: 0.75rem 1rem; font-size: 0.92rem; color: #374151; margin-top: 0.6rem; line-height: 1.65; }
+  .other-contexts strong { color: var(--accent2); }
+
+  /* FAKE UI */
+  .fake-browser { background: #f0f0f8; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+  .fake-browser-bar { background: #e2e2ec; padding: 0.45rem 0.7rem; display: flex; align-items: center; gap: 0.4rem; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dot.r{background:#f87171;}.dot.y{background:#fbbf24;}.dot.g{background:#4ade80;}
+  .url-bar { flex:1; background:#f9f9fb; border-radius:4px; padding:2px 8px; font-family:var(--mono); font-size:0.72rem; color:#888; }
+  .fake-browser-body { padding: 0.8rem; }
+  .fake-btn { display:inline-block; padding:5px 14px; border-radius:5px; font-size:0.88rem; font-weight:700; cursor:default; font-family:var(--font); }
+  .fake-btn-primary{background:#4f46e5;color:#fff;}.fake-btn-ghost{background:transparent;color:#888;border:1px solid #ddd;}.fake-btn-danger{background:#dc2626;color:#fff;}
+  .fake-input { background:#f9f9fb; border:1px solid #ddd; border-radius:5px; padding:6px 10px; font-size:0.9rem; color:#333; width:100%; margin-bottom:0.4rem; font-family:var(--font); }
+  .fake-label { font-size:0.84rem; color:#555; display:block; margin-bottom:3px; font-weight:700; }
+  .fake-error-msg { font-size:0.84rem; color:var(--bad); margin-top:5px; line-height:1.4; }
+  .fake-nav { display:flex; gap:1rem; font-size:0.88rem; color:#888; border-bottom:1px solid #ddd; padding-bottom:0.5rem; margin-bottom:0.7rem; }
+  .fake-nav .active { color:#4f46e5; font-weight:700; border-bottom:2px solid #4f46e5; padding-bottom:3px; margin-bottom:-1px; }
+  .fake-toast { background:#fff; border:1px solid #ddd; border-left:3px solid #0ea5e9; border-radius:7px; padding:0.5rem 0.8rem; font-size:0.84rem; display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .fake-toast.success{border-left-color:var(--good);}
+  .fake-progress { height:7px; background:#e4e4ec; border-radius:99px; overflow:hidden; margin:4px 0; }
+  .fake-progress-fill { height:100%; border-radius:99px; background:#4f46e5; }
+  .fake-modal-overlay { background:rgba(0,0,0,0.35); border-radius:10px; padding:1.5rem; display:flex; align-items:center; justify-content:center; }
+  .fake-modal { background:#fff; border-radius:10px; padding:1.2rem; max-width:220px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.15); }
+  .fake-modal h4 { font-size:0.95rem; margin-bottom:0.4rem; }
+  .fake-modal p { font-size:0.82rem; color:#555; margin-bottom:0.8rem; line-height:1.4; }
+  .fake-modal-btns { display:flex; gap:0.5rem; justify-content:center; }
+  .strength-bar { display:flex; gap:3px; margin-top:5px; }
+  .strength-seg { height:5px; flex:1; border-radius:99px; background:#e4e4ec; }
+  .strength-seg.filled{background:#16a34a;}.strength-seg.filled.medium{background:#d97706;}
+  .fake-shortcut { display:inline-flex; align-items:center; gap:4px; background:#f0f0f8; border:1px solid #ddd; border-radius:5px; padding:2px 8px; font-family:var(--mono); font-size:0.72rem; color:#555; }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+  /* H1: barra de puntaje siempre visible */
+  #score-bar { display:flex; align-items:center; justify-content:center; gap:1.2rem; padding:0.7rem 2rem; background:var(--surface); border-bottom:1px solid var(--border); }
+  #score-bar .label { font-family:var(--mono); font-size:0.82rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+  #score-display { font-size:1.6rem; font-weight:900; color:var(--accent); transition:transform 0.2s; }
+  #score-display.pop { transform:scale(1.4); }
+  #progress-wrap { flex:1; max-width:280px; height:7px; background:var(--border); border-radius:99px; overflow:hidden; }
+  #progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:99px; transition:width 0.6s cubic-bezier(.22,1,.36,1); width:0%; }
+  #q-counter { font-family:var(--mono); font-size:0.82rem; color:var(--muted); }
+
+  /* QUIZ */
+  .quiz-wrap { max-width:860px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+  .quiz-section-title { font-size:1.4rem; font-weight:800; color:var(--accent3); margin-bottom:0.4rem; }
+  /* H10: instrucciones visibles al entrar */
+  .quiz-instructions { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:var(--radius); padding:1rem 1.4rem; margin-bottom:1.8rem; font-size:0.97rem; color:#374151; line-height:1.65; }
+  .quiz-instructions strong { color:var(--accent); }
+  .question-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.8rem; margin-bottom:1.2rem; box-shadow:0 1px 4px rgba(0,0,0,0.06); transition:border-color 0.3s; animation:fadeUp 0.4s both; }
+  .question-card.answered-correct { border-color:var(--good); }
+  .question-card.answered-wrong { border-color:var(--bad); }
+  .q-header { display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .q-tag { font-family:var(--mono); font-size:0.72rem; padding:3px 9px; border-radius:5px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700; }
+  .q-num { font-family:var(--mono); font-size:0.82rem; color:var(--muted); }
+  .q-text { font-size:1.05rem; line-height:1.7; margin-bottom:1.2rem; }
+  .mockup-zone { background:var(--surface); border:1px dashed var(--border); border-radius:10px; padding:1rem; margin-bottom:1.2rem; }
+  .mockup-label { font-family:var(--mono); font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.6rem; }
+  .options { display:flex; flex-direction:column; gap:0.55rem; }
+  .opt-btn { background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:0.8rem 1.1rem; color:var(--text); font-family:var(--font); font-size:1rem; cursor:pointer; text-align:left; transition:background 0.15s, border-color 0.15s, transform 0.1s; display:flex; align-items:flex-start; gap:0.7rem; line-height:1.45; }
+  .opt-btn:hover:not(:disabled) { background:#eeeef8; border-color:var(--accent); transform:translateX(3px); }
+  .opt-btn:disabled { cursor:default; }
+  .opt-btn.correct { background:rgba(22,163,74,0.08); border-color:var(--good); }
+  .opt-btn.wrong { background:rgba(220,38,38,0.07); border-color:var(--bad); }
+  .opt-letter { font-family:var(--mono); font-size:0.75rem; width:24px; height:24px; border-radius:5px; background:var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--muted); font-weight:700; margin-top:2px; }
+  .opt-btn.correct .opt-letter{background:var(--good);color:#fff;}
+  .opt-btn.wrong .opt-letter{background:var(--bad);color:#fff;}
+  .feedback-box { margin-top:1rem; padding:1rem 1.1rem; border-radius:9px; font-size:0.97rem; line-height:1.65; display:none; }
+  .feedback-box.show { display:block; animation:fadeUp 0.3s both; }
+  .feedback-box.correct { background:rgba(22,163,74,0.07); border:1px solid rgba(22,163,74,0.25); }
+  .feedback-box.wrong { background:rgba(220,38,38,0.06); border:1px solid rgba(220,38,38,0.2); }
+
+  /* DRAG */
+  .drag-zone { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .drag-source { flex:1; min-width:200px; }
+  .drag-source-title,.drop-target-title { font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.6rem; font-weight:700; }
+  .draggable-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:0.55rem 0.85rem; margin-bottom:0.4rem; font-size:0.95rem; cursor:grab; user-select:none; transition:opacity 0.15s; line-height:1.4; }
+  .draggable-item:active{cursor:grabbing;opacity:0.6;}
+  .drop-columns { flex:2; min-width:260px; display:flex; gap:0.7rem; }
+  .drop-col { flex:1; display:flex; flex-direction:column; }
+  .drop-area { flex:1; min-height:100px; background:#f9f9fb; border:2px dashed var(--border); border-radius:10px; padding:0.5rem; transition:border-color 0.2s; }
+  .drop-area.over { border-color:var(--accent); background:rgba(79,70,229,0.03); }
+  .dropped-chip { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:0.85rem; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; line-height:1.35; }
+  .remove-chip { cursor:pointer; color:var(--muted); margin-left:5px; flex-shrink:0; }
+  .remove-chip:hover { color:var(--bad); }
+  .check-drag-btn { margin-top:0.8rem; background:var(--accent); color:#fff; border:none; border-radius:8px; padding:0.65rem 1.5rem; font-family:var(--font); font-weight:700; font-size:0.97rem; cursor:pointer; transition:opacity 0.15s; }
+  .check-drag-btn:hover{opacity:0.85;}.check-drag-btn:disabled{opacity:0.35;cursor:default;}
+
+  /* RESULTADOS */
+  #results-section { display:none; text-align:center; padding:3.5rem 1rem; animation:fadeUp 0.5s both; }
+  #results-section.show { display:block; }
+  #results-section h2 { font-size:2.2rem; font-weight:900; margin-bottom:0.4rem; }
+  .final-score { font-size:5rem; font-weight:900; color:var(--accent); line-height:1; margin:1.2rem 0 0.3rem; }
+  .final-msg { font-size:1.1rem; color:var(--muted); max-width:460px; margin:0.5rem auto 2rem; line-height:1.7; }
+  .restart-btn { background:transparent; border:2px solid var(--accent); color:var(--accent); border-radius:10px; padding:0.8rem 2rem; font-family:var(--font); font-weight:700; font-size:1rem; cursor:pointer; transition:background 0.15s, color 0.15s; }
+  .restart-btn:hover{background:var(--accent);color:#fff;}
+
+  /* TAG COLORS */
+  .tag-1{background:rgba(79,70,229,.12);color:#3730a3;}.tag-2{background:rgba(14,165,233,.12);color:#0369a1;}
+  .tag-3{background:rgba(219,39,119,.12);color:#9d174d;}.tag-4{background:rgba(22,163,74,.12);color:#166534;}
+  .tag-5{background:rgba(234,88,12,.12);color:#9a3412;}.tag-6{background:rgba(37,99,235,.12);color:#1e3a8a;}
+  .tag-7{background:rgba(220,38,38,.12);color:#991b1b;}.tag-8{background:rgba(124,58,237,.12);color:#5b21b6;}
+  .tag-9{background:rgba(5,150,105,.12);color:#065f46;}.tag-10{background:rgba(161,98,7,.12);color:#78350f;}
+
+  /* PRACTICA */
+  .practice-wrap { max-width:900px; margin:0 auto; padding:2.5rem 1.5rem 4rem; }
+  .practice-section { margin-bottom:3rem; }
+  .practice-section-title { font-size:1.5rem; font-weight:800; margin-bottom:0.4rem; }
+  .practice-section-sub { font-size:1rem; color:var(--muted); margin-bottom:1.5rem; line-height:1.65; }
+
+  /* MATCH */
+  .match-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  @media(max-width:620px){.match-grid{grid-template-columns:1fr;}}
+  .match-col-title { font-family:var(--mono); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.8rem; font-weight:700; }
+  .match-term,.match-def { background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:0.75rem 1rem; margin-bottom:0.5rem; font-size:0.97rem; cursor:pointer; transition:border-color 0.15s, background 0.15s; user-select:none; line-height:1.45; }
+  .match-term { font-weight:700; }
+  .match-term:hover,.match-def:hover { border-color:var(--accent); background:#f0f0fd; }
+  .match-term.selected { border-color:var(--accent); background:rgba(79,70,229,0.08); }
+  .match-def.selected { border-color:var(--accent2); background:rgba(14,165,233,0.07); }
+  .match-term.matched-correct,.match-def.matched-correct { border-color:var(--good); background:rgba(22,163,74,0.07); cursor:default; color:var(--good); }
+  .match-term.matched-wrong,.match-def.matched-wrong { border-color:var(--bad); background:rgba(220,38,38,0.06); animation:shake 0.3s; }
+  .match-score-row { display:flex; align-items:center; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
+  .match-score-badge { background:var(--accent); color:#fff; border-radius:8px; padding:0.4rem 1rem; font-family:var(--mono); font-size:0.9rem; font-weight:700; }
+  .match-reset-btn { background:transparent; border:1px solid var(--border); border-radius:8px; padding:0.4rem 1rem; font-size:0.88rem; color:var(--muted); cursor:pointer; font-family:var(--font); transition:border-color 0.15s; }
+  .match-reset-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* FILL */
+  .fill-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin-bottom:1rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .fill-sentence { font-size:1.05rem; line-height:1.9; color:var(--text); margin-bottom:0.8rem; }
+  .blank-input { display:inline-block; border:none; border-bottom:2px solid var(--accent); background:transparent; font-family:var(--font); font-size:1rem; color:var(--accent); padding:0 4px; width:200px; outline:none; text-align:center; transition:border-color 0.15s; }
+  .blank-input:focus { border-bottom-color:var(--accent2); }
+  .blank-input.correct-blank { border-bottom-color:var(--good); color:var(--good); }
+  .blank-input.wrong-blank { border-bottom-color:var(--bad); color:var(--bad); }
+  .fill-hint { font-size:0.9rem; color:var(--muted); margin-bottom:0.8rem; font-style:italic; }
+  .fill-check-btn { background:var(--accent); color:#fff; border:none; border-radius:7px; padding:0.5rem 1.2rem; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:var(--font); transition:opacity 0.15s; }
+  .fill-check-btn:hover{opacity:0.85;}.fill-check-btn:disabled{opacity:0.35;cursor:default;}
+  .fill-fb { font-size:0.95rem; margin-top:0.7rem; padding:0.6rem 0.9rem; border-radius:7px; display:none; line-height:1.55; }
+  .fill-fb.show{display:block;}
+  .fill-fb.ok{background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.25);color:#15803d;}
+  .fill-fb.err{background:rgba(220,38,38,0.07);border:1px solid rgba(220,38,38,0.2);color:#b91c1c;}
+
+  /* EVAL */
+  .eval-intro { background:linear-gradient(135deg,#f0effe,#e8f4ff); border:1px solid rgba(79,70,229,0.15); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem; }
+  .eval-intro p { font-size:1rem; color:#374151; line-height:1.7; }
+  .eval-intro strong { color:var(--accent); }
+  .severity-guide { display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0; }
+  .sev-badge { border-radius:6px; padding:5px 11px; font-family:var(--mono); font-size:0.82rem; font-weight:700; }
+  .sev-0{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;}
+  .sev-1{background:#fffbeb;color:#92400e;border:1px solid #fde68a;}
+  .sev-2{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+  .sev-3{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}
+  .sev-4{background:#dc2626;color:#fff;border:1px solid #dc2626;}
+  .eval-screen { border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:1.5rem; }
+  .eval-screen-title { background:var(--surface); padding:0.8rem 1.2rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; border-bottom:1px solid var(--border); font-weight:700; }
+  .eval-screen-body { padding:1.2rem; }
+  .eval-problem-list { display:flex; flex-direction:column; gap:0.8rem; margin-top:1rem; }
+  .eval-problem { border:1px solid var(--border); border-radius:10px; padding:1rem 1.1rem; background:#fff; }
+  .eval-problem-desc { font-size:1rem; color:var(--text); margin-bottom:0.8rem; line-height:1.55; }
+  .eval-row { display:flex; gap:0.7rem; flex-wrap:wrap; align-items:center; }
+  .eval-select { border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-family:var(--font); font-size:0.95rem; color:var(--text); background:var(--surface); cursor:pointer; }
+  .eval-select:focus{outline:none;border-color:var(--accent);}
+  .eval-problem.eval-ok { border-color:var(--good); background:rgba(22,163,74,0.04); }
+  .eval-problem.eval-err { border-color:var(--bad); background:rgba(220,38,38,0.04); }
+  .eval-problem-fb { font-size:0.92rem; margin-top:0.5rem; color:var(--muted); display:none; line-height:1.5; }
+  .eval-problem.eval-ok .eval-problem-fb,.eval-problem.eval-err .eval-problem-fb{display:block;}
+  .eval-problem.eval-ok .eval-problem-fb{color:var(--good);}
+  .eval-problem.eval-err .eval-problem-fb{color:var(--bad);}
+  .eval-submit-btn { background:var(--accent); color:#fff; border:none; border-radius:9px; padding:0.7rem 1.8rem; font-family:var(--font); font-weight:700; font-size:1rem; cursor:pointer; transition:opacity 0.15s; margin-top:1rem; }
+  .eval-submit-btn:hover{opacity:0.87;}.eval-submit-btn:disabled{opacity:0.35;cursor:default;}
+  .eval-result-banner { border-radius:10px; padding:1rem 1.3rem; margin-top:1rem; font-size:1rem; line-height:1.6; display:none; }
+  .eval-result-banner.show{display:block;animation:fadeUp 0.3s both;}
+  .eval-result-banner.great{background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.25);}
+  .eval-result-banner.partial{background:rgba(217,119,6,0.07);border:1px solid rgba(217,119,6,0.25);}
+
+  .practice-nav-hint { text-align:center; margin-top:2rem; padding:1.5rem; background:var(--surface); border-radius:12px; border:1px solid var(--border); }
+  .practice-nav-hint p { font-size:1rem; color:var(--muted); margin-bottom:1rem; line-height:1.6; }
+
+  /* H3: boton volver arriba */
+  #back-to-top { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--accent); color:#fff; border:none; border-radius:50%; width:46px; height:46px; font-size:1.1rem; cursor:pointer; opacity:0; pointer-events:none; transition:opacity 0.25s, transform 0.2s; z-index:500; box-shadow:0 4px 14px rgba(79,70,229,0.35); display:flex; align-items:center; justify-content:center; font-weight:700; }
+  #back-to-top.visible { opacity:1; pointer-events:all; }
+  #back-to-top:hover { transform:translateY(-2px); }
+
+  /* H1: toast de confirmacion */
+  #action-toast { position:fixed; bottom:5rem; right:1.5rem; background:#111; color:#fff; padding:0.6rem 1.1rem; border-radius:8px; font-size:0.92rem; opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:600; box-shadow:0 4px 14px rgba(0,0,0,0.2); }
+  #action-toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<!-- H3: acceso accesible al contenido -->
+<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+
+<!-- H1: navegacion siempre visible, indica seccion activa -->
+<nav id="nav-tabs">
+  <div class="nav-tab active" onclick="showPage('intro')" id="tab-intro">Introduccion</div>
+  <div class="nav-tab" onclick="showPage('guide')" id="tab-guide">Las 10 Heuristicas</div>
+  <div class="nav-tab" onclick="showPage('practice')" id="tab-practice">Practica Guiada</div>
+  <div class="nav-tab" onclick="showPage('quiz')" id="tab-quiz">Evaluacion</div>
+</nav>
+
+<!-- H1: breadcrumb siempre sabe donde estas -->
+<div id="breadcrumb">
+  <span>Inicio</span> <span>&rsaquo;</span> <span class="bc-current" id="bc-label">Introduccion</span>
+</div>
+
+<main id="main-content">
+
+<!-- PAGE 1: INTRO -->
+<div class="page active" id="page-intro">
+  <div id="hero">
+    <div class="hero-eyebrow">Usabilidad Web</div>
+    <h1>Las Heuristicas de<br><em>Jakob Nielsen</em></h1>
+    <p class="hero-sub">10 principios fundamentales de diseno de interaccion que todo profesional de UX debe dominar. Aprende, practica y pon a prueba tu conocimiento.</p>
+    <div class="hero-cta-row">
+      <button class="btn-primary" onclick="showPage('guide')">Ver las 10 Heuristicas</button>
+      <button class="btn-outline" onclick="showPage('quiz')">Ir directo a la Evaluacion</button>
+    </div>
+    <!-- H7: salto rapido para usuarios avanzados que ya conocen el contenido -->
+    <div class="hero-quickjump">
+      <p>Ya conoces el tema? Salta directo a una heuristica:</p>
+      <div class="qj-grid" id="qj-grid"></div>
+    </div>
+  </div>
+
+  <div class="section-wrap">
+    <div class="section-label">Sobre el autor</div>
+    <div class="section-title">Quien es Jakob Nielsen?</div>
+    <div class="person-card">
+      <div class="person-avatar">&#x1F9D1;&#x200D;&#x1F4BB;</div>
+      <div class="person-info">
+        <h3>Jakob Nielsen</h3>
+        <div class="person-title">Co-fundador de Nielsen Norman Group - "El padre de la usabilidad web"</div>
+        <p>Cientifico computacional danes y experto en <span data-tip="Facilidad con la que los usuarios logran sus objetivos en un sistema">usabilidad</span>. Doctorado en interaccion humano-computadora por la Technical University of Denmark. Ha trabajado en Bellcore, IBM, Apple y Sun Microsystems, y es el referente mundial en experiencia de usuario.</p>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="stat-num">10</div><div class="stat-label">Heuristicas de usabilidad</div></div>
+      <div class="stat-pill"><div class="stat-num">1994</div><div class="stat-label">Anio de publicacion</div></div>
+      <div class="stat-pill"><div class="stat-num">30+</div><div class="stat-label">Anios de vigencia</div></div>
+      <div class="stat-pill"><div class="stat-num">#1</div><div class="stat-label">Metodo UX mas usado</div></div>
+    </div>
+    <div class="section-body">
+      <p>Nielsen publico sus 10 heuristicas en 1994 junto con Rolf Molich, basandose en el analisis de 249 problemas de usabilidad. Desde entonces se convirtieron en el estandar de oro para realizar <strong>evaluaciones heuristicas</strong>: revisiones de interfaces sin necesidad de usuarios reales.</p>
+      <p>A diferencia de las pruebas de usuario, una evaluacion heuristica puede hacerla un experto en pocas horas y detectar entre el <strong>70-80% de los problemas de usabilidad</strong> de un sistema.</p>
+    </div>
+    <div class="divider"></div>
+    <div class="section-label">Contexto</div>
+    <div class="section-title">Que es una <span data-tip="Revision sistematica de una interfaz contra los 10 principios de Nielsen, sin usuarios reales">evaluacion heuristica</span>?</div>
+    <div class="section-body">
+      <p>Una <strong>heuristica</strong> es una regla general derivada de la experiencia. Un evaluador recorre la interfaz e identifica elementos que violan alguno de los 10 principios. Cada problema se registra por <strong>heuristica violada</strong> y <strong>severidad</strong> (del 0 al 4), donde 0 = sin problema real y 4 = catastrofe de usabilidad.</p>
+      <p>El resultado es un reporte priorizado que el equipo de diseno usa para corregir los problemas mas criticos primero, maximizando el impacto del rediseno.</p>
+    </div>
+    <div class="divider"></div>
+    <div class="section-label">Historia</div>
+    <div class="section-title">Evolucion del modelo</div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1990</div><div class="tl-text">Nielsen y Molich proponen la primera version con 9 principios.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1994</div><div class="tl-text">Se refinan hasta las <strong>10 heuristicas definitivas</strong>, publicadas en "Usability Engineering". Se vuelven estandar de la industria.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1998</div><div class="tl-text">Fundacion del <strong>Nielsen Norman Group</strong> junto a Don Norman, que consolida la investigacion en UX a nivel mundial.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">2020</div><div class="tl-text">Las heuristicas se actualizan con ejemplos modernos (apps moviles, IA, asistentes de voz), pero los 10 principios permanecen intactos.</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">Hoy</div><div class="tl-text">Son el metodo de evaluacion UX mas ensenado en universidades y mas utilizado en la industria a nivel mundial.</div></div>
+    </div>
+    <div style="margin-top:2.5rem;text-align:center;">
+      <button class="btn-primary" onclick="showPage('guide')">Explorar las 10 heuristicas &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: GUIA -->
+<div class="page" id="page-guide">
+  <div class="section-wrap">
+    <div class="section-label">Guia de referencia</div>
+    <div class="section-title">Las 10 Heuristicas de Nielsen</div>
+    <p style="color:var(--muted);font-size:1rem;margin-bottom:1.5rem;line-height:1.65;">Haz clic en cada principio para ver su definicion, ejemplos de UI que <span style="color:var(--bad);font-weight:700;">violan</span> vs. <span style="color:var(--good);font-weight:700;">aplican</span> la heuristica, y otros contextos donde aplica mas alla de las apps web.</p>
+    <!-- H7: herramientas para usuarios avanzados | H3: control total -->
+    <div class="guide-toolbar">
+      <button class="guide-toolbar-btn" onclick="expandAll()">Expandir todo</button>
+      <button class="guide-toolbar-btn" onclick="collapseAll()">Colapsar todo</button>
+      <input class="guide-search" type="search" id="guide-search" placeholder="Filtrar por nombre o concepto..." oninput="filterGuide(this.value)" />
+    </div>
+    <div id="heuristics-guide-container"></div>
+    <div style="margin-top:2rem;text-align:center;">
+      <button class="btn-primary" onclick="showPage('practice')">Ir a la Practica Guiada &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: PRACTICA -->
+<div class="page" id="page-practice">
+  <div class="practice-wrap">
+    <div class="practice-section">
+      <div class="section-label">Actividad 1 de 3</div>
+      <div class="practice-section-title">Empareja: Heuristica y Definicion</div>
+      <!-- H10: instrucciones visibles antes de la actividad -->
+      <p class="practice-section-sub">Haz clic en una heuristica (izquierda) y luego en su definicion correcta (derecha). Verde si aciertas, rojo si fallas. Puedes reiniciar cuando quieras.</p>
+      <div class="match-grid">
+        <div><div class="match-col-title">Heuristicas</div><div id="match-terms-col"></div></div>
+        <div><div class="match-col-title">Definiciones</div><div id="match-defs-col"></div></div>
+      </div>
+      <div class="match-score-row">
+        <div class="match-score-badge" id="match-score-badge">0 / 10 emparejados</div>
+        <button class="match-reset-btn" onclick="resetMatch()">Reiniciar actividad</button>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="practice-section">
+      <div class="section-label">Actividad 2 de 3</div>
+      <div class="practice-section-title">Completa la definicion</div>
+      <p class="practice-section-sub">Escribe el termino correcto en el espacio en blanco. No importan mayusculas ni acentos. Puedes apoyarte en las pistas entre parentesis.</p>
+      <div id="fill-cards-container"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="practice-section">
+      <div class="section-label">Actividad 3 de 3</div>
+      <div class="practice-section-title">Simulador de Evaluacion Heuristica</div>
+      <p class="practice-section-sub">Eres el evaluador. Analiza cada problema encontrado en la interfaz, selecciona la heuristica violada y asigna un nivel de severidad.</p>
+      <div class="eval-intro">
+        <p>Una <strong>evaluacion heuristica</strong> consiste en revisar sistematicamente una interfaz contra los 10 principios. Por cada problema identificas: (1) que heuristica viola, y (2) que tan grave es.</p>
+        <p style="margin-top:0.7rem;"><strong>Escala de <span data-tip="Del 0 (sin impacto real) al 4 (el usuario no puede completar su tarea)">severidad</span>:</strong></p>
+        <div class="severity-guide">
+          <span class="sev-badge sev-0">0 Sin problema</span>
+          <span class="sev-badge sev-1">1 Cosmetico</span>
+          <span class="sev-badge sev-2">2 Menor</span>
+          <span class="sev-badge sev-3">3 Mayor</span>
+          <span class="sev-badge sev-4">4 Catastrofe</span>
+        </div>
+      </div>
+      <div class="eval-screen">
+        <div class="eval-screen-title">Pantalla bajo evaluacion: App de Banca Movil</div>
+        <div class="eval-screen-body">
+          <div class="fake-browser">
+            <div class="fake-browser-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="url-bar">bancamovil.com/transferir</div></div>
+            <div class="fake-browser-body">
+              <div class="fake-nav"><span>Inicio</span><span class="active">Transferir</span><span>Historial</span></div>
+              <label class="fake-label">Cuenta destino (numero de 18 digitos)</label>
+              <input class="fake-input" type="text" placeholder="Escribe el numero exacto de cuenta" readonly />
+              <label class="fake-label" style="margin-top:4px;">Monto</label>
+              <input class="fake-input" type="text" placeholder="$0.00" readonly />
+              <div style="margin-top:8px;"><div class="fake-btn fake-btn-primary">Transferir ahora</div></div>
+              <div style="font-size:0.8rem;color:#aaa;margin-top:6px;">[Sin confirmacion - Sin indicador de proceso - Sin opcion de cancelar]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:1rem;color:#374151;margin-bottom:1rem;line-height:1.55;">Se encontraron <strong>4 problemas de usabilidad</strong> en esta pantalla. Para cada uno, selecciona la heuristica violada y el nivel de severidad:</p>
+      <div class="eval-problem-list" id="eval-problems"></div>
+      <button class="eval-submit-btn" id="eval-submit-btn" onclick="checkEval()">Verificar mi evaluacion</button>
+      <div class="eval-result-banner" id="eval-result-banner"></div>
+    </div>
+    <div class="practice-nav-hint">
+      <p>Listo para poner todo a prueba? Pasa al ejercicio final de evaluacion.</p>
+      <button class="btn-primary" onclick="showPage('quiz')">Ir a la Evaluacion Final &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: QUIZ -->
+<div class="page" id="page-quiz">
+  <!-- H1: puntuacion visible todo el tiempo -->
+  <div id="score-bar">
+    <span class="label">Puntos</span>
+    <span id="score-display">0</span>
+    <div id="progress-wrap"><div id="progress-fill"></div></div>
+    <span id="q-counter">0 / 0</span>
+  </div>
+  <div class="quiz-wrap">
+    <div class="quiz-section-title">Evaluacion Final</div>
+    <!-- H10: instrucciones claras antes de empezar -->
+    <div class="quiz-instructions">
+      <strong>Como funciona:</strong> Lee cada situacion o fragmento de interfaz y selecciona la respuesta correcta. En las preguntas de arrastre, coloca cada problema en la heuristica que viola. Tus respuestas se evaluan en el momento, no hay boton de envio final.
+    </div>
+    <div id="questions-container"></div>
+    <div id="results-section">
+      <h2>Evaluacion completada!</h2>
+      <div class="final-score" id="final-score-num">0</div>
+      <div id="final-perc" style="font-family:var(--mono);font-size:1.1rem;color:var(--muted);margin-bottom:0.3rem;"></div>
+      <div class="final-msg" id="final-msg"></div>
+      <button class="restart-btn" onclick="restart()">Intentar de nuevo</button>
+      <div style="margin-top:1rem;">
+        <!-- H3: salida clara de regreso a la guia -->
+        <button class="btn-outline" onclick="showPage('guide')" style="font-size:0.9rem;padding:0.55rem 1.2rem;">Repasar heuristicas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- H3: volver arriba desde cualquier punto -->
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Volver arriba">&#8593;</button>
+
+<!-- H1: toast de retroalimentacion de navegacion -->
+<div id="action-toast"></div>
+
+<script>
+// === UTILS ===
+function showToast(msg, ms) {
+  ms = ms || 2000;
+  var t = document.getElementById('action-toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, ms);
+}
+
+window.addEventListener('scroll', function(){
+  document.getElementById('back-to-top').classList.toggle('visible', window.scrollY > 300);
+});
+
+// === NAV ===
+var PAGE_LABELS = { intro:'Introduccion', guide:'Las 10 Heuristicas', practice:'Practica Guiada', quiz:'Evaluacion Final' };
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('bc-label').textContent = PAGE_LABELS[id];
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Seccion: ' + PAGE_LABELS[id]);
+}
+
+// === HEURISTICS DATA ===
+var HD = [
+  { num:"H1", name:"Visibilidad del estado del sistema", tagClass:"tag-1",
+    definition:"El sistema siempre debe <strong>mantener al usuario informado</strong> sobre lo que esta ocurriendo, con retroalimentacion apropiada en un tiempo razonable.",
+    keyPoint:"Si el sistema hace algo que tarda mas de 1 segundo, muestra un indicador. Si tarda mas de 10 segundos, muestra progreso cuantificable.",
+    otros:"Cajero automatico que muestra 'procesando...' al retirar dinero. Microondas con display de tiempo restante. Semaforo peatonal con cuenta regresiva. Barra de descarga en cualquier app.",
+    bad:{label:"Viola H1",html:'<div style="font-size:0.9rem;color:#555;margin-bottom:6px;">Subiendo archivo...</div><div style="background:#f5f5f7;border:2px dashed #ddd;border-radius:8px;padding:1.2rem;text-align:center;color:#bbb;font-size:0.85rem;">[Pantalla en blanco - sin respuesta]</div><div style="font-size:0.82rem;color:#aaa;margin-top:6px;">Esta cargando? Fallo? El usuario no sabe.</div>'},
+    good:{label:"Aplica H1",html:'<div style="font-size:0.9rem;color:#555;margin-bottom:6px;">Subiendo archivo...</div><div class="fake-progress"><div class="fake-progress-fill" style="width:65%"></div></div><div style="font-size:0.85rem;color:#555;margin-top:5px;">65% completado - 3 segundos restantes</div><div class="fake-toast success" style="margin-top:6px;">Archivo subido correctamente</div>'}},
+  { num:"H2", name:"Correspondencia con el mundo real", tagClass:"tag-2",
+    definition:"El sistema debe hablar el <strong>lenguaje del usuario</strong> - palabras, frases y conceptos familiares, no jerga del sistema. Sigue convenciones del mundo real.",
+    keyPoint:"El lenguaje de la interfaz debe corresponder a lo que el usuario ya conoce. Evita acronimos tecnicos y terminos de programacion.",
+    otros:"App de impuestos que dice 'deducciones fiscales' en vez de 'XML_DEDUCT_OVERRIDE'. GPS que dice 'gira a la derecha en Insurgentes' en vez de coordenadas. Receta que usa 'taza' en vez de '250ml'.",
+    bad:{label:"Viola H2",html:'<div style="font-size:0.9rem;line-height:1.8;color:#555;">Flush DNS cache<br>TTL override: 3600ms<br>Toggle async I/O buffer</div><div style="font-size:0.82rem;color:#aaa;margin-top:6px;">Incomprensible para usuarios no tecnicos.</div>'},
+    good:{label:"Aplica H2",html:'<div style="font-size:0.9rem;line-height:1.8;color:#333;">Borrar archivos temporales<br>Actualizar informacion cada: 1 hora<br>Modo conexion rapida</div><div style="font-size:0.82rem;color:#16a34a;margin-top:6px;">Lenguaje claro para cualquier usuario.</div>'}},
+  { num:"H3", name:"Control y libertad del usuario", tagClass:"tag-3",
+    definition:"Los usuarios cometen errores y necesitan <strong>salidas de emergencia</strong> claramente marcadas. Debe haber soporte para Deshacer y Rehacer.",
+    keyPoint:"Todo sistema que permita acciones debe ofrecer un 'Deshacer'. Las confirmaciones destructivas deben incluir siempre Cancelar.",
+    otros:"Correo con 'Deshacer envio' durante 10 segundos. Papelera de reciclaje antes de borrar definitivamente. Checkout con boton 'Regresar al carrito'. Formulario largo con 'Guardar borrador'.",
+    bad:{label:"Viola H3",html:'<div class="fake-modal-overlay"><div class="fake-modal"><h4>Eliminar archivo</h4><p>Se eliminara permanentemente.</p><div class="fake-modal-btns"><div class="fake-btn fake-btn-danger">Eliminar</div></div><div style="font-size:0.8rem;color:#aaa;margin-top:6px;">Sin opcion de cancelar.</div></div></div>'},
+    good:{label:"Aplica H3",html:'<div class="fake-modal-overlay"><div class="fake-modal"><h4>Eliminar archivo</h4><p>Puedes restaurarlo desde la papelera por 30 dias.</p><div class="fake-modal-btns"><div class="fake-btn fake-btn-ghost">Cancelar</div><div class="fake-btn fake-btn-danger">Eliminar</div></div></div></div>'}},
+  { num:"H4", name:"Consistencia y estandares", tagClass:"tag-4",
+    definition:"Los usuarios no deben preguntarse si <strong>diferentes palabras, situaciones o acciones significan lo mismo</strong>. Sigue las convenciones de la plataforma.",
+    keyPoint:"Si en una pantalla dices 'Guardar' y en otra 'Salvar', el usuario duda. La terminologia debe ser uniforme en toda la app.",
+    otros:"Boton de cerrar sesion siempre en el mismo lugar. Iconos del sistema operativo con significado estable. Senales de transito con color y forma estandarizados internacionalmente.",
+    bad:{label:"Viola H4",html:'<div style="font-size:0.85rem;color:#555;margin-bottom:5px;">Electronica:</div><div class="fake-btn fake-btn-primary" style="margin-bottom:8px;">Anadir al carrito</div><div style="font-size:0.85rem;color:#555;margin-bottom:5px;">Ropa:</div><div class="fake-btn" style="background:#16a34a;color:#fff;">Agregar al carro</div><div style="font-size:0.82rem;color:#aaa;margin-top:6px;">Es la misma accion? Color y texto distintos generan duda.</div>'},
+    good:{label:"Aplica H4",html:'<div style="font-size:0.85rem;color:#555;margin-bottom:6px;">En todas las categorias:</div><div class="fake-btn fake-btn-primary">Anadir al carrito</div><div style="font-size:0.82rem;color:#16a34a;margin-top:6px;">Mismo texto, mismo color en toda la tienda.</div>'}},
+  { num:"H5", name:"Prevencion de errores", tagClass:"tag-5",
+    definition:"Mejor que un buen mensaje de error es un <strong>diseno que evite que el problema ocurra</strong>. Verifica y presenta confirmacion antes de acciones criticas.",
+    keyPoint:"Dos tipos: (1) errores de desliz - acciones no intencionadas; (2) errores de equivocacion - decisiones incorrectas por falta de informacion.",
+    otros:"Campos de fecha con selector visual. Formulario de vuelo que alerta si el regreso es antes que la ida. Cajero que pide confirmar el monto antes de debitar. Corrector ortografico antes de enviar.",
+    bad:{label:"Viola H5",html:'<label class="fake-label">Contrasena</label><input class="fake-input" type="password" value="123456" readonly /><div class="fake-btn fake-btn-primary" style="margin-top:6px;width:100%;text-align:center;">Guardar</div><div class="fake-error-msg" style="margin-top:5px;">Error: contrasena no cumple requisitos. (aparece solo despues de enviar)</div>'},
+    good:{label:"Aplica H5",html:'<label class="fake-label">Contrasena</label><input class="fake-input" type="password" value="MiClave8" readonly /><div class="strength-bar"><div class="strength-seg filled"></div><div class="strength-seg filled medium"></div><div class="strength-seg filled"></div><div class="strength-seg"></div></div><div style="font-size:0.85rem;color:#555;margin-top:5px;">Tiene 8+ caracteres - Tiene numero - Falta mayuscula</div>'}},
+  { num:"H6", name:"Reconocimiento antes que recuerdo", tagClass:"tag-6",
+    definition:"Minimiza la carga de memoria haciendo <strong>visibles los objetos, acciones y opciones</strong>. El usuario no debe recordar datos de una pantalla a otra.",
+    keyPoint:"Reconocer es mas facil que recordar. Mostrar opciones en un menu es mejor que obligar al usuario a escribir comandos de memoria.",
+    otros:"Menu de restaurante con fotos de cada platillo. Lista de contactos recientes en la app de llamadas. Historial de busqueda en Google. Tooltips con atajos de teclado visibles al pasar el cursor.",
+    bad:{label:"Viola H6",html:'<label class="fake-label">Buscar (ingresa el SKU exacto):</label><input class="fake-input" type="text" placeholder="Ej: PRD-00423-A" readonly /><div style="font-size:0.82rem;color:#aaa;margin-top:5px;">El usuario debe memorizar los codigos. Sin sugerencias ni historial.</div>'},
+    good:{label:"Aplica H6",html:'<label class="fake-label">Buscar producto:</label><input class="fake-input" type="text" placeholder="Nombre o codigo..." readonly /><div style="background:#fff;border:1px solid #ddd;border-radius:6px;padding:6px;margin-top:4px;"><div style="color:#888;font-size:0.8rem;margin-bottom:3px;">Busquedas recientes</div><div style="padding:3px 0;color:#333;font-size:0.9rem;">Silla ergonomica</div><div style="padding:3px 0;color:#333;font-size:0.9rem;">Monitor 27"</div></div>'}},
+  { num:"H7", name:"Flexibilidad y eficiencia de uso", tagClass:"tag-7",
+    definition:"Los <strong>aceleradores</strong> agilizan la interaccion para usuarios expertos sin afectar a novatos. El sistema debe atender a ambos perfiles.",
+    keyPoint:"Atajos de teclado, autocompletado, macros y personalizacion son aceleradores. Los novatos los ignoran; los expertos los necesitan.",
+    otros:"Ctrl+C / Ctrl+V en cualquier programa. Comandos de voz en asistentes. Autocompletado de direcciones en apps de delivery. Plantillas reutilizables en editores de texto.",
+    bad:{label:"Viola H7",html:'<div style="font-size:0.9rem;color:#555;margin-bottom:6px;">Todos los usuarios deben seguir los mismos 6 pasos obligatorios sin posibilidad de saltarlos.</div><div style="font-size:0.85rem;color:#aaa;">Sin atajos, sin modo experto, sin plantillas.</div>'},
+    good:{label:"Aplica H7",html:'<div style="font-size:0.9rem;color:#555;margin-bottom:7px;">Crear factura:</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;"><div class="fake-btn fake-btn-primary">Asistente paso a paso</div><div class="fake-btn fake-btn-ghost">Modo rapido</div></div><div style="font-size:0.85rem;color:#555;">Importar plantilla: <span class="fake-shortcut">Ctrl+I</span></div>'}},
+  { num:"H8", name:"Diseno estetico y minimalista", tagClass:"tag-8",
+    definition:"Los dialogos no deben contener <strong>informacion irrelevante o raramente necesaria</strong>. Cada unidad extra compite con la informacion relevante.",
+    keyPoint:"Minimalismo no es 'vacio'. Significa que todo elemento en pantalla tiene una razon de estar. Si no ayuda al usuario, quitalo.",
+    otros:"Senalizacion de aeropuerto: solo iconos esenciales. Formulario medico que solo pide los datos necesarios. Panel de control de auto con indicadores criticos visibles.",
+    bad:{label:"Viola H8",html:'<div style="font-size:0.85rem;line-height:1.8;color:#555;">BIENVENIDO | Aviso legal | Fundada en 2003 | Premios 2007 | ISO 9001 | Version 3.2.1 | Copyright 2003-2024 | Politica de cookies | Mapa del sitio | Prensa | Inversores</div><div style="font-size:0.82rem;color:#aaa;margin-top:6px;">Todo compite por atencion. Que es lo importante?</div>'},
+    good:{label:"Aplica H8",html:'<div class="fake-nav"><span class="active">Inicio</span><span>Tienda</span><span>Mi cuenta</span></div><div style="font-size:1rem;font-weight:700;color:#111;margin-bottom:5px;">Encuentra lo que necesitas</div><input class="fake-input" type="text" placeholder="Buscar..." readonly />'}},
+  { num:"H9", name:"Ayuda para reconocer y recuperarse de errores", tagClass:"tag-9",
+    definition:"Los mensajes de error deben estar en <strong>lenguaje simple</strong>, indicar el problema con precision y <strong>sugerir una solucion</strong>. Sin culpar al usuario.",
+    keyPoint:"Formula: (1) que salio mal, (2) por que (si aplica), (3) que puede hacer el usuario para resolverlo.",
+    otros:"Error 404 que sugiere ir al inicio o usar el buscador. App bancaria que explica por que se rechazo una transferencia. GPS que recalcula la ruta automaticamente al girar mal.",
+    bad:{label:"Viola H9",html:'<label class="fake-label">Email</label><input class="fake-input" value="juan@@correo" readonly /><div class="fake-error-msg">ERROR_CODE_422: invalid_email_format</div><div style="font-size:0.82rem;color:#aaa;margin-top:5px;">Que significa? Como lo corrijo?</div>'},
+    good:{label:"Aplica H9",html:'<label class="fake-label">Email</label><input class="fake-input" value="juan@@correo" readonly /><div class="fake-error-msg">El correo no es valido. Verifica que no haya doble "@" e incluya un dominio, por ejemplo: juan@correo.com</div>'}},
+  { num:"H10", name:"Ayuda y documentacion", tagClass:"tag-10",
+    definition:"Aunque es mejor que el sistema no la necesite, <strong>puede ser necesario proporcionar ayuda</strong>. Debe ser facil de encontrar, centrada en tareas y concreta.",
+    keyPoint:"La ayuda contextual (tooltip, hint inline) es mejor que un manual externo. El mejor momento para mostrarla es cuando el usuario la necesita.",
+    otros:"Tooltip en campo de CVV que explica donde se encuentra. Guia interactiva de primer uso en una app nueva. Chatbot de soporte visible en el checkout. FAQ contextual en formularios complejos.",
+    bad:{label:"Viola H10",html:'<label class="fake-label">Endpoint URL</label><input class="fake-input" placeholder="" readonly /><label class="fake-label" style="margin-top:5px;">Auth token</label><input class="fake-input" placeholder="" readonly /><div style="font-size:0.82rem;color:#aaa;margin-top:6px;">Sin pista, tooltip ni enlace de ayuda. El usuario esta solo.</div>'},
+    good:{label:"Aplica H10",html:'<label class="fake-label">Endpoint URL <span style="color:#4f46e5;font-size:0.82rem;cursor:help;border-bottom:1px dashed #4f46e5;">Que es esto?</span></label><input class="fake-input" placeholder="https://api.tuservicio.com/v1" readonly /><div class="fake-toast" style="font-size:0.85rem;margin-top:5px;">Encuentralo en Configuracion - API - Panel de desarrollador</div>'}}
+];
+
+// === QUICK JUMP ===
+function renderQuickJump() {
+  document.getElementById('qj-grid').innerHTML = HD.map(function(h,i){
+    return '<button class="qj-btn" onclick="jumpToHeuristic(' + i + ')">' + h.num + '</button>';
+  }).join('');
+}
+function jumpToHeuristic(i) {
+  showPage('guide');
+  setTimeout(function(){
+    var card = document.getElementById('hcard-' + i);
+    if(card){ card.classList.add('open'); card.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }, 250);
+}
+
+// === RENDER GUIDE ===
+function renderGuide() {
+  document.getElementById('heuristics-guide-container').innerHTML = HD.map(function(h,i){
+    return '<div class="h-guide-card" id="hcard-' + i + '">' +
+      '<div class="h-guide-header" onclick="toggleGuide(' + i + ')">' +
+        '<span class="h-guide-num ' + h.tagClass + '">' + h.num + '</span>' +
+        '<span class="h-guide-name">' + h.name + '</span>' +
+        '<span class="h-guide-chevron">&#9660;</span>' +
+      '</div>' +
+      '<div class="h-guide-body">' +
+        '<p class="h-guide-definition">' + h.definition + '</p>' +
+        '<div class="example-split">' +
+          '<div><div class="example-col-label label-bad">' + h.bad.label + '</div><div class="ui-example bad">' + h.bad.html + '</div></div>' +
+          '<div><div class="example-col-label label-good">' + h.good.label + '</div><div class="ui-example good">' + h.good.html + '</div></div>' +
+        '</div>' +
+        '<div class="key-point"><strong>Clave:</strong> ' + h.keyPoint + '</div>' +
+        '<div class="other-contexts"><strong>Tambien aplica en:</strong> ' + h.otros + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleGuide(i) {
+  document.getElementById('hcard-' + i).classList.toggle('open');
+}
+function expandAll() {
+  document.querySelectorAll('.h-guide-card').forEach(function(c){ c.classList.add('open'); });
+  showToast('Todas las heuristicas expandidas');
+}
+function collapseAll() {
+  document.querySelectorAll('.h-guide-card').forEach(function(c){ c.classList.remove('open'); });
+  showToast('Todas las heuristicas colapsadas');
+}
+function filterGuide(q) {
+  var term = q.toLowerCase().trim();
+  document.querySelectorAll('.h-guide-card').forEach(function(card, i){
+    var h = HD[i];
+    var match = !term || h.name.toLowerCase().includes(term) || h.num.toLowerCase().includes(term) || h.definition.toLowerCase().includes(term) || h.keyPoint.toLowerCase().includes(term);
+    card.style.display = match ? '' : 'none';
+    if(match && term) card.classList.add('open');
+  });
+}
+
+// === MATCH ===
+var MATCH_PAIRS = [
+  {term:"H1 - Visibilidad del estado", def:"El sistema informa al usuario en tiempo real que esta ocurriendo", defId:"m1"},
+  {term:"H2 - Mundo real", def:"Usa el lenguaje y conceptos que el usuario ya conoce de su vida cotidiana", defId:"m2"},
+  {term:"H3 - Control y libertad", def:"El usuario puede deshacer errores y salir de estados no deseados", defId:"m3"},
+  {term:"H4 - Consistencia", def:"Palabras, iconos y acciones significan lo mismo en toda la interfaz", defId:"m4"},
+  {term:"H5 - Prevencion de errores", def:"El diseno evita que los problemas ocurran antes de que el usuario los cometa", defId:"m5"},
+  {term:"H6 - Reconocimiento", def:"Las opciones son visibles; el usuario no tiene que memorizar informacion", defId:"m6"},
+  {term:"H7 - Flexibilidad", def:"Existen atajos y modos rapidos para usuarios expertos", defId:"m7"},
+  {term:"H8 - Minimalismo", def:"Solo se muestra informacion relevante; nada compite innecesariamente", defId:"m8"},
+  {term:"H9 - Recuperacion de errores", def:"Los errores se explican en lenguaje claro con una solucion propuesta", defId:"m9"},
+  {term:"H10 - Ayuda", def:"Documentacion facil de encontrar, centrada en tareas del usuario", defId:"m10"},
+];
+var matchSelected=null, matchCorrect=0, matchedTerms=new Set(), matchedDefs=new Set();
+
+function renderMatch() {
+  var shuffled = [...MATCH_PAIRS].sort(function(){return Math.random()-0.5;});
+  document.getElementById('match-terms-col').innerHTML = MATCH_PAIRS.map(function(p,i){
+    return '<div class="match-term" id="mterm-' + i + '" onclick="selectTerm(' + i + ',\'' + p.defId + '\')">' + p.term + '</div>';
+  }).join('');
+  document.getElementById('match-defs-col').innerHTML = shuffled.map(function(p){
+    return '<div class="match-def" id="mdef-' + p.defId + '" onclick="selectDef(\'' + p.defId + '\')">' + p.def + '</div>';
+  }).join('');
+}
+function selectTerm(idx, defId) {
+  if(matchedTerms.has(idx)) return;
+  document.querySelectorAll('.match-term').forEach(function(t){t.classList.remove('selected');});
+  document.getElementById('mterm-' + idx).classList.add('selected');
+  matchSelected = {idx:idx, defId:defId};
+}
+function selectDef(defId) {
+  if(matchedDefs.has(defId)) return;
+  document.querySelectorAll('.match-def').forEach(function(d){d.classList.remove('selected');});
+  if(!matchSelected){ document.getElementById('mdef-' + defId).classList.add('selected'); return; }
+  if(matchSelected.defId === defId) {
+    document.getElementById('mterm-' + matchSelected.idx).classList.replace('selected','matched-correct');
+    document.getElementById('mdef-' + defId).classList.replace('selected','matched-correct');
+    matchedTerms.add(matchSelected.idx); matchedDefs.add(defId); matchCorrect++;
+    document.getElementById('match-score-badge').textContent = matchCorrect + ' / 10 emparejados';
+    if(matchCorrect===10) showToast('Emparejaste todas las heuristicas!');
+  } else {
+    var ti=document.getElementById('mterm-' + matchSelected.idx);
+    var di=document.getElementById('mdef-' + defId);
+    ti.classList.add('matched-wrong'); di.classList.add('matched-wrong');
+    setTimeout(function(){ti.classList.remove('matched-wrong','selected');di.classList.remove('matched-wrong','selected');},500);
+  }
+  matchSelected=null;
+}
+function resetMatch() {
+  matchSelected=null; matchCorrect=0; matchedTerms.clear(); matchedDefs.clear();
+  document.getElementById('match-score-badge').textContent='0 / 10 emparejados';
+  renderMatch(); showToast('Actividad reiniciada');
+}
+
+// === FILL CARDS ===
+var FILL_CARDS=[
+  {sentence:'La heuristica de <span><input class="blank-input" placeholder="escribe aqui" id="blank-0"/></span> establece que los usuarios no deben preguntarse si diferentes palabras o colores significan lo mismo en partes distintas de la interfaz.',hint:'Pista: uniformidad y convenciones.',answer:'consistencia',accept:['consistencia','h4']},
+  {sentence:'Cuando un sistema no muestra ningun indicador mientras procesa una tarea, viola la heuristica de <span><input class="blank-input" placeholder="escribe aqui" id="blank-1"/></span>.',hint:'Pista: el usuario necesita saber que esta pasando.',answer:'visibilidad del estado del sistema',accept:['visibilidad','h1']},
+  {sentence:'El principio "mejor que un buen mensaje de error es no dejar que el error ocurra" corresponde a la heuristica de <span><input class="blank-input" placeholder="escribe aqui" id="blank-2"/></span>.',hint:'Pista: actua antes de que el problema suceda.',answer:'prevencion de errores',accept:['prevencion','h5','prevenci']},
+  {sentence:'Mostrar historial de busqueda y sugerencias mientras el usuario escribe aplica la heuristica de <span><input class="blank-input" placeholder="escribe aqui" id="blank-3"/></span>.',hint:'Pista: ver es mas facil que memorizar.',answer:'reconocimiento antes que recuerdo',accept:['reconocimiento','h6']},
+  {sentence:'Los atajos de teclado, modos rapidos y macros son ejemplos de la heuristica de <span><input class="blank-input" placeholder="escribe aqui" id="blank-4"/></span>.',hint:'Pista: sirve tanto a novatos como a expertos.',answer:'flexibilidad y eficiencia de uso',accept:['flexibilidad','h7']},
+];
+function renderFillCards() {
+  document.getElementById('fill-cards-container').innerHTML = FILL_CARDS.map(function(c,i){
+    return '<div class="fill-card" id="fcard-' + i + '">' +
+      '<div class="fill-sentence">' + c.sentence + '</div>' +
+      '<div class="fill-hint">' + c.hint + '</div>' +
+      '<button class="fill-check-btn" id="fill-btn-' + i + '" onclick="checkFill(' + i + ')">Verificar</button>' +
+      '<div class="fill-fb" id="fill-fb-' + i + '"></div>' +
+    '</div>';
+  }).join('');
+}
+function normalize(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+function checkFill(i) {
+  var c=FILL_CARDS[i];
+  var val=normalize(document.getElementById('blank-' + i).value);
+  var ok=c.accept.some(function(a){ var an=normalize(a); return val.includes(an)||(an.includes(val)&&val.length>2); });
+  var inp=document.getElementById('blank-' + i);
+  inp.classList.toggle('correct-blank',ok); inp.classList.toggle('wrong-blank',!ok);
+  var fb=document.getElementById('fill-fb-' + i);
+  fb.className='fill-fb show ' + (ok?'ok':'err');
+  fb.innerHTML=ok?'Correcto. La respuesta es: <strong>'+c.answer+'</strong>.':'No es correcto. La respuesta es: <strong>'+c.answer+'</strong>. '+c.hint;
+  document.getElementById('fill-btn-' + i).disabled=ok;
+}
+
+// === EVAL ===
+var EVAL_PROBLEMS=[
+  {desc:"El usuario debe escribir el numero de cuenta de 18 digitos sin ninguna guia, mascara de formato ni validacion en tiempo real.",correctH:"H5",correctS:"3",
+   hFb:"Viola H5 (Prevencion de errores): sin mascara ni validacion en tiempo real, los errores son casi inevitables en una operacion tan critica.",sFb:"Severidad 3 (Mayor): un error de digito puede causar perdida real de dinero."},
+  {desc:"Al presionar 'Transferir ahora', no aparece ningun indicador de que el sistema esta procesando la operacion.",correctH:"H1",correctS:"4",
+   hFb:"Viola H1 (Visibilidad del estado): el usuario no sabe si la transferencia fue enviada, esta procesando o fallo.",sFb:"Severidad 4 (Catastrofe): la ambiguedad puede llevar al usuario a enviar la transferencia dos veces."},
+  {desc:"Una vez confirmada la transferencia, no hay opcion de cancelarla ni de ver un resumen previo antes de ejecutarla.",correctH:"H3",correctS:"4",
+   hFb:"Viola H3 (Control y libertad): en operaciones financieras irreversibles siempre debe haber un paso de confirmacion con opcion de cancelar.",sFb:"Severidad 4 (Catastrofe): transferencias irreversibles sin confirmacion representan el mayor riesgo en banca."},
+  {desc:"El campo de monto no tiene ninguna descripcion de la moneda ni ejemplo del formato esperado (pesos, dolares, decimales).",correctH:"H2",correctS:"2",
+   hFb:"Viola H2 (Correspondencia con el mundo real): el usuario necesita ver la moneda y el formato para ingresar el dato correctamente.",sFb:"Severidad 2 (Menor): confuso, pero normalmente el usuario puede inferirlo del contexto de la app."},
+];
+function renderEval() {
+  var hOptions=HD.map(function(h){return '<option value="' + h.num + '">' + h.num + ' - ' + h.name + '</option>';}).join('');
+  var sOptions=[0,1,2,3,4].map(function(s){return '<option value="' + s + '">' + s + ' - ' + ['Sin problema','Cosmetico','Menor','Mayor','Catastrofe'][s] + '</option>';}).join('');
+  document.getElementById('eval-problems').innerHTML=EVAL_PROBLEMS.map(function(p,i){
+    return '<div class="eval-problem" id="ep-' + i + '">' +
+      '<div class="eval-problem-desc">Problema ' + (i+1) + ': ' + p.desc + '</div>' +
+      '<div class="eval-row">' +
+        '<select class="eval-select" id="ep-h-' + i + '"><option value="">Selecciona heuristica...</option>' + hOptions + '</select>' +
+        '<select class="eval-select" id="ep-s-' + i + '"><option value="">Severidad...</option>' + sOptions + '</select>' +
+      '</div>' +
+      '<div class="eval-problem-fb" id="ep-fb-' + i + '"></div>' +
+    '</div>';
+  }).join('');
+}
+function checkEval() {
+  var correct=0;
+  EVAL_PROBLEMS.forEach(function(p,i){
+    var hVal=document.getElementById('ep-h-' + i).value;
+    var sVal=document.getElementById('ep-s-' + i).value;
+    var card=document.getElementById('ep-' + i);
+    var fb=document.getElementById('ep-fb-' + i);
+    var hOk=hVal===p.correctH, sOk=sVal===p.correctS;
+    if(hOk&&sOk){card.classList.add('eval-ok');card.classList.remove('eval-err');fb.innerHTML='Correcto - ' + p.hFb + ' ' + p.sFb;correct++;}
+    else{card.classList.add('eval-err');card.classList.remove('eval-ok');var msg='';if(!hOk)msg+='La heuristica correcta es <strong>' + p.correctH + '</strong>. ' + p.hFb + ' ';if(!sOk)msg+='La severidad correcta es <strong>' + p.correctS + '</strong>. ' + p.sFb;fb.innerHTML=msg;}
+  });
+  var banner=document.getElementById('eval-result-banner');
+  banner.className='eval-result-banner show ' + (correct>=3?'great':'partial');
+  banner.innerHTML=correct===4?'Evaluacion perfecta! Identificaste todos los problemas correctamente.':correct + '/4 correctos. Revisa los marcados en rojo.';
+  document.getElementById('eval-submit-btn').disabled=true;
+}
+
+// === QUIZ ===
+var QUESTIONS=[
+  {type:"mcq",heuristic:0,tagClass:"tag-1",
+   text:"La pantalla de carga de archivos no muestra ninguna respuesta visual al usuario. Cual es el problema principal?",
+   mockup:'<div class="fake-browser"><div class="fake-browser-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="url-bar">app.com/subir</div></div><div class="fake-browser-body"><p style="font-size:0.9rem;color:#555;margin-bottom:8px;">Sube tu archivo:</p><div style="background:#f5f5f7;border:2px dashed #ddd;border-radius:8px;padding:1.5rem;text-align:center;color:#bbb;">Arrastra aqui</div><div class="fake-btn fake-btn-primary" style="margin-top:8px;display:block;text-align:center;">Subir</div><div style="margin-top:8px;height:20px;"></div></div></div>',
+   options:["El area de arrastre tiene poco contraste visual","No hay indicador de progreso ni confirmacion de exito","El boton deberia ser verde para mayor claridad","Falta un campo para nombrar el archivo"],
+   correct:1,feedback:"Correcto. Sin retroalimentacion, el usuario no sabe si el sistema esta trabajando. Viola <strong>H1: Visibilidad del estado del sistema</strong>.",feedbackWrong:"El problema central es la ausencia de retroalimentacion. H1 exige que el sistema informe al usuario en todo momento."},
+  {type:"mcq",heuristic:2,tagClass:"tag-3",
+   text:"Un usuario borra un documento por error. El modal de confirmacion no tiene opcion de cancelar. Que heuristica viola?",
+   mockup:'<div class="fake-modal-overlay"><div class="fake-modal"><h4>Eliminar archivo</h4><p>Se eliminara permanentemente.</p><div class="fake-modal-btns"><div class="fake-btn fake-btn-danger">Eliminar</div></div></div></div>',
+   options:["H4 - Consistencia y estandares","H8 - Diseno minimalista","H3 - Control y libertad del usuario","H2 - Correspondencia con el mundo real"],
+   correct:2,feedback:"Correcto. Sin 'Cancelar', se viola <strong>H3: Control y libertad del usuario</strong>.",feedbackWrong:"La heuristica violada es H3. El usuario siempre necesita poder cancelar acciones destructivas."},
+  {type:"mcq",heuristic:3,tagClass:"tag-4",
+   text:"El mismo boton de compra tiene texto y color diferente en distintas secciones de la tienda. Que heuristica viola?",
+   mockup:'<div class="fake-browser"><div class="fake-browser-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="url-bar">tienda.com</div></div><div class="fake-browser-body"><div style="font-size:0.85rem;color:#555;margin-bottom:4px;">Electronica:</div><div class="fake-btn fake-btn-primary" style="margin-bottom:8px;">Anadir al carrito</div><div style="font-size:0.85rem;color:#555;margin-bottom:4px;">Ropa:</div><div class="fake-btn" style="background:#16a34a;color:#fff;margin-bottom:8px;">Agregar al carro</div><div style="font-size:0.85rem;color:#555;margin-bottom:4px;">Libros:</div><div class="fake-btn" style="background:#d97706;color:#fff;">Comprar ahora</div></div></div>',
+   options:["H5 - Prevencion de errores","H4 - Consistencia y estandares","H6 - Reconocimiento","H10 - Ayuda y documentacion"],
+   correct:1,feedback:"Correcto. Texto y color diferente para la misma accion viola <strong>H4: Consistencia y estandares</strong>.",feedbackWrong:"La inconsistencia de terminos y colores para la misma accion viola H4."},
+  {type:"mcq",heuristic:4,tagClass:"tag-5",
+   text:"Cual diseno de campo de contrasena aplica MEJOR la Heuristica 5 (Prevencion de errores)?",
+   options:["Mostrar el error solo despues de hacer clic en 'Registrar'","Mostrar medidor de fortaleza y requisitos en tiempo real mientras el usuario escribe","Redirigir al usuario a la documentacion para leer las reglas","Bloquear el boton sin explicar por que no esta activo"],
+   correct:1,feedback:"Correcto. La retroalimentacion en tiempo real <strong>previene que el error ocurra</strong>: eso es H5.",feedbackWrong:"H5 se trata de evitar el error antes de que suceda con retroalimentacion inmediata y visible."},
+  {type:"mcq",heuristic:5,tagClass:"tag-6",
+   text:"Un sistema requiere que el usuario escriba el codigo SKU exacto del producto para buscarlo. Sin sugerencias ni historial. Que heuristica viola?",
+   mockup:'<div class="fake-browser"><div class="fake-browser-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div><div class="url-bar">inventario.com</div></div><div class="fake-browser-body"><label class="fake-label">Buscar producto (codigo SKU exacto):</label><input class="fake-input" type="text" placeholder="Ej: INV-2024-A-04832" readonly /><div style="font-size:0.85rem;color:#aaa;margin-top:4px;">Sin sugerencias, sin historial, sin autocompletado.</div></div></div>',
+   options:["H8 - Diseno minimalista","H2 - Correspondencia con el mundo real","H6 - Reconocimiento antes que recuerdo","H9 - Ayuda para recuperarse de errores"],
+   correct:2,feedback:"Correcto. Obligar a memorizar codigos exactos viola <strong>H6: Reconocimiento antes que recuerdo</strong>.",feedbackWrong:"H6 establece que hay que minimizar la carga de memoria."},
+  {type:"mcq",heuristic:8,tagClass:"tag-9",
+   text:"El usuario escribe mal su correo. Cual mensaje de error aplica mejor H9?",
+   mockup:'<div style="padding:0.5rem 0;"><label class="fake-label">Email</label><input class="fake-input" type="text" value="juan@@empresa" readonly /></div>',
+   options:['"Error 422"','"Entrada invalida. Intenta de nuevo."','"El correo no es valido. Verifica que no haya doble @ e incluya un dominio, ej: juan@empresa.com"','"Campo requerido"'],
+   correct:2,feedback:"Correcto. <strong>H9</strong> exige: lenguaje simple + problema identificado + solucion propuesta. Solo la opcion C cumple los tres.",feedbackWrong:"H9 requiere mensajes en lenguaje humano con el problema y una solucion concreta."},
+  {type:"drag",
+   text:"Clasifica cada problema de interfaz en la heuristica que viola. Arrastra cada elemento a la columna correcta.",
+   items:[
+     {id:"d1",text:"El sistema no muestra nada mientras procesa un pago"},
+     {id:"d2",text:"No hay boton para deshacer la ultima accion"},
+     {id:"d3",text:"El error dice solo: 'ERROR_CODE_500'"},
+     {id:"d4",text:"El formulario pide datos que el usuario ya ingreso antes"},
+   ],
+   categories:[{id:"H1",label:"H1 Visibilidad"},{id:"H3",label:"H3 Control"},{id:"H6",label:"H6 Reconocimiento"},{id:"H9",label:"H9 Errores"}],
+   correctMap:{d1:"H1",d2:"H3",d3:"H9",d4:"H6"},
+   feedback:"Sin retroalimentacion = H1. Sin deshacer = H3. Codigo de error incomprensible = H9. Pedir datos ya dados = H6."},
+  {type:"mcq",heuristic:6,tagClass:"tag-7",
+   text:"Una app de facturacion obliga a todos los usuarios a seguir los mismos 6 pasos obligatorios. Los expertos tardan 10 minutos en una tarea simple. Que heuristica no se aplica?",
+   options:["H4 - Consistencia y estandares","H7 - Flexibilidad y eficiencia de uso","H5 - Prevencion de errores","H10 - Ayuda y documentacion"],
+   correct:1,feedback:"Correcto. <strong>H7</strong> indica que los aceleradores permiten a usuarios expertos trabajar mas rapido sin afectar a los novatos.",feedbackWrong:"H7 pide que el sistema sirva tanto a novatos como expertos. Los expertos necesitan atajos y rutas rapidas."},
+];
+
+var score=0, answered=0, total=QUESTIONS.length;
+
+function renderQuestions(){
+  var c=document.getElementById('questions-container'); c.innerHTML='';
+  QUESTIONS.forEach(function(q,qi){
+    var div=document.createElement('div'); div.className='question-card'; div.id='q-' + qi; div.style.animationDelay=(qi*0.06) + 's';
+    var hData=q.heuristic!==undefined?HD[q.heuristic]:null;
+    var inner='<div class="q-header"><span class="q-num">Ejercicio ' + (qi+1) + ' de ' + total + '</span>' + (hData?'<span class="q-tag ' + q.tagClass + '">' + hData.num + ' - ' + hData.name + '</span>':'<span class="q-tag" style="background:#f0f0f8;color:#888;">Clasificacion multiple</span>') + '</div><p class="q-text">' + q.text + '</p>';
+    if(q.mockup) inner+='<div class="mockup-zone"><div class="mockup-label">Interfaz de referencia</div>' + q.mockup + '</div>';
+    if(q.type==='mcq'){
+      var L=['A','B','C','D'];
+      inner+='<div class="options">' + q.options.map(function(o,oi){return '<button class="opt-btn" onclick="handleMCQ(' + qi + ',' + oi + ')" id="opt-' + qi + '-' + oi + '"><span class="opt-letter">' + L[oi] + '</span>' + o + '</button>';}).join('') + '</div>';
+    } else if(q.type==='drag'){
+      inner+='<div class="drag-zone"><div class="drag-source"><div class="drag-source-title">Arrastra hacia la columna correcta</div>' +
+        q.items.map(function(it){return '<div class="draggable-item" draggable="true" id="drag-' + qi + '-' + it.id + '" data-id="' + it.id + '">' + it.text + '</div>';}).join('') +
+        '</div><div class="drop-columns">' + q.categories.map(function(cat){return '<div class="drop-col"><div class="drop-target-title">' + cat.label + '</div><div class="drop-area" id="drop-' + qi + '-' + cat.id + '" data-cat="' + cat.id + '"></div></div>';}).join('') +
+        '</div></div><button class="check-drag-btn" id="check-drag-' + qi + '" onclick="checkDrag(' + qi + ')">Verificar clasificacion</button>';
+    }
+    inner+='<div class="feedback-box" id="fb-' + qi + '"></div>';
+    div.innerHTML=inner; c.appendChild(div);
+    if(q.type==='drag') initDrag(q,qi);
+  });
+  updateCounter();
+}
+
+function initDrag(q,qi){
+  setTimeout(function(){
+    document.querySelectorAll('[id^="drag-' + qi + '-"]').forEach(function(el){
+      el.addEventListener('dragstart',function(e){e.dataTransfer.setData('text/plain',el.dataset.id);el.style.opacity='0.4';});
+      el.addEventListener('dragend',function(){el.style.opacity='';});
+    });
+    document.querySelectorAll('[id^="drop-' + qi + '-"]').forEach(function(area){
+      area.addEventListener('dragover',function(e){e.preventDefault();area.classList.add('over');});
+      area.addEventListener('dragleave',function(){area.classList.remove('over');});
+      area.addEventListener('drop',function(e){
+        e.preventDefault(); area.classList.remove('over');
+        var id=e.dataTransfer.getData('text/plain');
+        var drag=document.getElementById('drag-' + qi + '-' + id);
+        if(!drag||area.querySelector('[data-id="' + id + '"]')) return;
+        var chip=document.createElement('div'); chip.className='dropped-chip'; chip.dataset.id=id;
+        chip.innerHTML='<span style="font-size:0.88rem;">' + drag.textContent.trim() + '</span><span class="remove-chip" onclick="removeChip(this,\'' + id + '\',' + qi + ')">x</span>';
+        area.appendChild(chip); drag.style.display='none';
+      });
+    });
+  },150);
+}
+
+function removeChip(btn,id,qi){btn.parentElement.remove();var el=document.getElementById('drag-' + qi + '-' + id);if(el)el.style.display='';}
+
+function checkDrag(qi){
+  var q=QUESTIONS[qi]; var correct=0;
+  document.querySelectorAll('[id^="drop-' + qi + '-"]').forEach(function(area){
+    var cat=area.dataset.cat;
+    area.querySelectorAll('.dropped-chip').forEach(function(chip){
+      if(q.correctMap[chip.dataset.id]===cat){correct++;chip.style.borderColor='var(--good)';}
+      else chip.style.borderColor='var(--bad)';
+    });
+  });
+  var ok=correct===q.items.length;
+  var fb=document.getElementById('fb-' + qi);
+  fb.className='feedback-box show ' + (ok?'correct':'wrong');
+  fb.innerHTML=ok?'<strong>Perfecto!</strong> ' + q.feedback:'<strong>' + correct + '/' + q.items.length + ' correctos.</strong> Revisa los marcados en rojo. ' + q.feedback;
+  document.getElementById('q-' + qi).classList.add(ok?'answered-correct':'answered-wrong');
+  document.getElementById('check-drag-' + qi).disabled=true;
+  if(ok){score++;updateScore();} answered++;updateCounter();checkComplete();
+}
+
+function handleMCQ(qi,choice){
+  var q=QUESTIONS[qi];
+  var btns=document.getElementById('q-' + qi).querySelectorAll('.opt-btn');
+  btns.forEach(function(b){b.disabled=true;});
+  btns[choice].classList.add(choice===q.correct?'correct':'wrong');
+  btns[q.correct].classList.add('correct');
+  var ok=choice===q.correct;
+  var fb=document.getElementById('fb-' + qi);
+  fb.className='feedback-box show ' + (ok?'correct':'wrong');
+  fb.innerHTML=ok?'<strong>Correcto</strong> - ' + q.feedback:'<strong>Incorrecto</strong> - ' + q.feedbackWrong;
+  document.getElementById('q-' + qi).classList.add(ok?'answered-correct':'answered-wrong');
+  if(ok){score++;updateScore();} answered++;updateCounter();checkComplete();
+}
+
+function updateScore(){var el=document.getElementById('score-display');el.textContent=score;el.classList.add('pop');setTimeout(function(){el.classList.remove('pop');},300);}
+function updateCounter(){document.getElementById('q-counter').textContent=answered + '/' + total;document.getElementById('progress-fill').style.width=Math.round((answered/total)*100) + '%';}
+function checkComplete(){
+  if(answered>=total){
+    setTimeout(function(){
+      var pct=Math.round((score/total)*100);
+      document.getElementById('final-score-num').textContent=score + '/' + total;
+      document.getElementById('final-perc').textContent=pct + '% de respuestas correctas';
+      document.getElementById('final-msg').textContent=pct===100?'Dominas las heuristicas de Nielsen! Estas listo para auditar interfaces reales.':pct>=70?'Buen dominio. Repasa la guia en las heuristicas donde fallaste.':'Sigue practicando. Usa la seccion de guia y la practica guiada para reforzar.';
+      document.getElementById('results-section').classList.add('show');
+      document.getElementById('results-section').scrollIntoView({behavior:'smooth'});
+    },500);
+  }
+}
+function restart(){score=0;answered=0;updateScore();updateCounter();document.getElementById('results-section').classList.remove('show');renderQuestions();window.scrollTo({top:0,behavior:'smooth'});}
+
+// === INIT ===
+renderGuide();
+renderMatch();
+renderFillCards();
+renderEval();
+renderQuestions();
+renderQuickJump();
+</script>
+</body>
+</html>
